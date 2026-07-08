@@ -1,9 +1,17 @@
 "use server";
 
+import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type { Papel } from "@/types/database";
+
+async function urlDefinirSenha() {
+  const headersList = await headers();
+  const host = headersList.get("host");
+  const protocolo = host?.startsWith("localhost") ? "http" : "https";
+  return `${protocolo}://${host}/definir-senha`;
+}
 
 async function exigirAdmin() {
   const supabase = await createClient();
@@ -84,6 +92,7 @@ export async function convidarUsuario(params: { email: string; nome: string; pap
       papel: params.papel,
       empresa_id: params.empresaId ?? "",
     },
+    redirectTo: await urlDefinirSenha(),
   });
   if (error) throw new Error(error.message);
   revalidatePath("/admin/usuarios");

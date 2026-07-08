@@ -59,13 +59,18 @@ export async function middleware(request: NextRequest) {
 
   const path = request.nextUrl.pathname;
   const isLoginPage = path === "/login";
+  const isDefinirSenha = path === "/definir-senha";
 
   if (!user) {
-    if (!isLoginPage) {
+    if (!isLoginPage && !isDefinirSenha) {
       const url = request.nextUrl.clone();
       url.pathname = "/login";
       return NextResponse.redirect(url);
     }
+    return response;
+  }
+
+  if (isDefinirSenha) {
     return response;
   }
 
