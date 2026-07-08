@@ -16,8 +16,19 @@ function ehRotaAdmin(path: string) {
 function ehRotaTecnico(path: string) {
   return ["/dashboard", "/fila", "/escalados"].some((p) => path.startsWith(p));
 }
-function ehRotaCliente(path: string) {
-  return path.startsWith("/chamados");
+// segundo segmento da URL: "/chamados/abc/def" -> "abc"
+function segundoSegmento(path: string) {
+  return path.split("/").filter(Boolean)[1];
+}
+// /chamados (lista) e /chamados/novo são exclusivos do portal do cliente
+function ehRotaClienteExclusiva(path: string) {
+  return path === "/chamados" || segundoSegmento(path) === "novo";
+}
+// /chamados/[id] é compartilhada entre cliente, técnico e admin — cada um só
+// enxerga o que a RLS permite
+function ehRotaChamadoDetalhe(path: string) {
+  const segundo = segundoSegmento(path);
+  return path.startsWith("/chamados/") && Boolean(segundo) && segundo !== "novo";
 }
 
 export async function middleware(request: NextRequest) {
@@ -73,10 +84,14 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  const papelCliente = papel === "cliente_gestor" || papel === "cliente_usuario";
+  const papelTecnico = papel === "tecnico_senior" || papel === "tecnico_junior";
+
   const semAcesso =
     (ehRotaAdmin(path) && papel !== "admin") ||
-    (ehRotaTecnico(path) && papel !== "tecnico_senior" && papel !== "tecnico_junior") ||
-    (ehRotaCliente(path) && papel !== "cliente_gestor" && papel !== "cliente_usuario");
+    (ehRotaTecnico(path) && !papelTecnico) ||
+    (ehRotaClienteExclusiva(path) && !papelCliente) ||
+    (ehRotaChamadoDetalhe(path) && !papelCliente && !papelTecnico && papel !== "admin");
 
   if (semAcesso) {
     const url = request.nextUrl.clone();
