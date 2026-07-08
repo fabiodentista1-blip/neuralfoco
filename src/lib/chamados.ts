@@ -40,14 +40,6 @@ export const NIVEL_RESOLUCAO_LABELS: Record<NivelResolucao, string> = {
   com_bruno: "Com ajuda do Bruno",
 };
 
-export const CATEGORIAS_CHAMADO = [
-  "Bug / erro no sistema",
-  "Dúvida de uso",
-  "Solicitação de melhoria",
-  "Acesso / login",
-  "Outro",
-];
-
 export const STATUS_ABERTOS: StatusChamado[] = [
   "aberto",
   "triado",

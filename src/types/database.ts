@@ -321,6 +321,26 @@ export interface Database {
           criado_em?: string;
         }
       >;
+      categorias_chamado: Table<
+        {
+          id: string;
+          nome: string;
+          ativa: boolean;
+          criado_em: string;
+        },
+        {
+          id?: string;
+          nome: string;
+          ativa?: boolean;
+          criado_em?: string;
+        },
+        {
+          id?: string;
+          nome?: string;
+          ativa?: boolean;
+          criado_em?: string;
+        }
+      >;
       configuracoes: Table<
         {
           id: string;

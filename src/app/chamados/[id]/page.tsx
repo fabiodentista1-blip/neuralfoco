@@ -229,6 +229,11 @@ export default function ChamadoDetalhePage() {
     }
 
     await enviarMensagem(motivoEscalonamento.trim(), [], true);
+    fetch("/api/webhooks/n8n", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ evento: "escalonamento", chamadoId, motivo: motivoEscalonamento.trim() }),
+    }).catch(() => {});
     setMotivoEscalonamento("");
     setModalEscalonar(false);
     setAbaAtiva("interno");
@@ -257,6 +262,11 @@ export default function ChamadoDetalhePage() {
           : atual
       );
       setModalResolver(false);
+      fetch("/api/webhooks/n8n", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ evento: "resolvido", chamadoId, nivelResolucao }),
+      }).catch(() => {});
     }
   }
 

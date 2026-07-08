@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,25 +15,34 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { AnexosPicker } from "@/components/chamados/anexos-picker";
-import { CATEGORIAS_CHAMADO } from "@/lib/chamados";
 import { createClient } from "@/lib/supabase/client";
 import { enviarAnexos } from "@/lib/chamados-upload";
 
 export default function NovoChamadoPage() {
   const router = useRouter();
+  const supabase = useMemo(() => createClient(), []);
   const [titulo, setTitulo] = useState("");
   const [descricao, setDescricao] = useState("");
   const [categoria, setCategoria] = useState<string | undefined>(undefined);
+  const [categorias, setCategorias] = useState<string[]>([]);
   const [anexos, setAnexos] = useState<File[]>([]);
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase
+      .from("categorias_chamado")
+      .select("nome")
+      .eq("ativa", true)
+      .order("nome")
+      .then(({ data }) => setCategorias((data ?? []).map((c) => c.nome)));
+  }, [supabase]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setErro(null);
     setEnviando(true);
     try {
-      const supabase = createClient();
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -66,11 +75,16 @@ export default function NovoChamadoPage() {
         await enviarAnexos({ chamadoId: chamado.id, arquivos: anexos });
       }
 
-      // Triagem automática por IA — não bloqueia a criação do chamado se falhar.
+      // Triagem automática por IA e webhook n8n — não bloqueiam a criação do chamado se falharem.
       fetch("/api/ia/analisar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ chamadoId: chamado.id, tipo: "triagem" }),
+      }).catch(() => {});
+      fetch("/api/webhooks/n8n", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ evento: "novo_chamado", chamadoId: chamado.id, titulo }),
       }).catch(() => {});
 
       router.push(`/chamados/${chamado.id}`);
@@ -119,7 +133,7 @@ export default function NovoChamadoPage() {
                   <SelectValue placeholder="Selecione uma categoria" />
                 </SelectTrigger>
                 <SelectContent>
-                  {CATEGORIAS_CHAMADO.map((c) => (
+                  {categorias.map((c) => (
                     <SelectItem key={c} value={c}>
                       {c}
                     </SelectItem>
