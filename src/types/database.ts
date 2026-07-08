@@ -321,6 +321,26 @@ export interface Database {
           criado_em?: string;
         }
       >;
+      configuracoes: Table<
+        {
+          id: string;
+          ia_ativa: boolean;
+          webhook_n8n_url: string | null;
+          atualizado_em: string;
+        },
+        {
+          id?: string;
+          ia_ativa?: boolean;
+          webhook_n8n_url?: string | null;
+          atualizado_em?: string;
+        },
+        {
+          id?: string;
+          ia_ativa?: boolean;
+          webhook_n8n_url?: string | null;
+          atualizado_em?: string;
+        }
+      >;
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;

@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label";
 import { StatusBadge, PrioridadeBadge } from "@/components/chamados/status-badge";
 import { AnexosPicker } from "@/components/chamados/anexos-picker";
 import { AnexoThumb } from "@/components/chamados/anexo-thumb";
+import { PainelIA } from "@/components/chamados/painel-ia";
 import {
   NIVEL_RESOLUCAO_LABELS,
   PRIORIDADE_LABELS,
@@ -392,28 +393,34 @@ export default function ChamadoDetalhePage() {
       </div>
 
       {isTecnicoOuAdmin && (
-        <div className="w-56 shrink-0 space-y-2 border-l pl-6">
-          <p className="mb-2 text-sm font-medium">Ações</p>
-          {chamado.atribuido_a !== userId && (
-            <Button variant="outline" size="sm" className="w-full" onClick={handleAssumir}>
-              Assumir chamado
-            </Button>
-          )}
-          {isJunior && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full"
-              onClick={() => setModalEscalonar(true)}
-            >
-              Pedir ajuda do Bruno
-            </Button>
-          )}
-          {chamado.status !== "resolvido" && chamado.status !== "fechado" && (
-            <Button size="sm" className="w-full" onClick={abrirModalResolver}>
-              Marcar como resolvido
-            </Button>
-          )}
+        <div className="w-72 shrink-0 space-y-4 border-l pl-6">
+          <div className="space-y-2">
+            <p className="mb-2 text-sm font-medium">Ações</p>
+            {chamado.atribuido_a !== userId && (
+              <Button variant="outline" size="sm" className="w-full" onClick={handleAssumir}>
+                Assumir chamado
+              </Button>
+            )}
+            {isJunior && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={() => setModalEscalonar(true)}
+              >
+                Pedir ajuda do Bruno
+              </Button>
+            )}
+            {chamado.status !== "resolvido" && chamado.status !== "fechado" && (
+              <Button size="sm" className="w-full" onClick={abrirModalResolver}>
+                Marcar como resolvido
+              </Button>
+            )}
+          </div>
+          <div>
+            <p className="mb-2 text-sm font-medium">Painel de IA</p>
+            <PainelIA chamadoId={chamadoId} />
+          </div>
         </div>
       )}
 

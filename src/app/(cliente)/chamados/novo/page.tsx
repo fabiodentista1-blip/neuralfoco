@@ -66,6 +66,13 @@ export default function NovoChamadoPage() {
         await enviarAnexos({ chamadoId: chamado.id, arquivos: anexos });
       }
 
+      // Triagem automática por IA — não bloqueia a criação do chamado se falhar.
+      fetch("/api/ia/analisar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chamadoId: chamado.id, tipo: "triagem" }),
+      }).catch(() => {});
+
       router.push(`/chamados/${chamado.id}`);
     } catch (err) {
       setErro(err instanceof Error ? err.message : "Erro ao abrir o chamado.");
