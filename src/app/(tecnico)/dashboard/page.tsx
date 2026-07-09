@@ -1,4 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Inbox, Clock3, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { CardMetrica } from "@/components/metricas/card-metrica";
 import { STATUS_ABERTOS } from "@/lib/chamados";
 import { createClient } from "@/lib/supabase/server";
 
@@ -36,29 +37,14 @@ export default async function DashboardPage() {
       .gte("resolvido_em", seteDiasAtras),
   ]);
 
-  const cards = [
-    { titulo: "Meus chamados abertos", valor: abertos.count ?? 0 },
-    { titulo: "Aguardando cliente", valor: aguardando.count ?? 0 },
-    { titulo: "Críticos", valor: criticos.count ?? 0 },
-    { titulo: "Resolvidos na semana", valor: resolvidosSemana.count ?? 0 },
-  ];
-
   return (
     <div className="mx-auto max-w-4xl p-8">
       <h1 className="mb-6 text-2xl font-semibold">Dashboard</h1>
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        {cards.map((c) => (
-          <Card key={c.titulo}>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {c.titulo}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-semibold">{c.valor}</p>
-            </CardContent>
-          </Card>
-        ))}
+        <CardMetrica titulo="Meus chamados abertos" valor={abertos.count ?? 0} icon={Inbox} cor="azul" />
+        <CardMetrica titulo="Aguardando cliente" valor={aguardando.count ?? 0} icon={Clock3} cor="ambar" />
+        <CardMetrica titulo="Críticos" valor={criticos.count ?? 0} icon={AlertTriangle} cor="vermelho" />
+        <CardMetrica titulo="Resolvidos na semana" valor={resolvidosSemana.count ?? 0} icon={CheckCircle2} cor="verde" />
       </div>
     </div>
   );

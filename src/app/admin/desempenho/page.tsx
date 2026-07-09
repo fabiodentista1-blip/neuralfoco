@@ -1,7 +1,11 @@
+import { Inbox, CheckCircle2, Clock, ArrowUpCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EvolucaoJuniorChart } from "@/components/admin/evolucao-junior-chart";
-import { STATUS_ABERTOS } from "@/lib/chamados";
+import { DistribuicaoDonut } from "@/components/admin/distribuicao-donut";
+import { CardMetrica } from "@/components/metricas/card-metrica";
+import { STATUS_ABERTOS, STATUS_LABELS } from "@/lib/chamados";
 import { createClient } from "@/lib/supabase/server";
+import type { StatusChamado } from "@/types/database";
 
 function chaveDoMes(data: string) {
   const d = new Date(data);
@@ -54,6 +58,25 @@ export default async function DesempenhoPage() {
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5)
     .map(([id, total]) => ({ nome: empresaNome.get(id) ?? id, total }));
+
+  const contagemPorStatus = new Map<StatusChamado, number>();
+  for (const c of listaChamados) {
+    contagemPorStatus.set(c.status, (contagemPorStatus.get(c.status) ?? 0) + 1);
+  }
+  const distribuicaoStatus = Array.from(contagemPorStatus.entries()).map(([status, total]) => ({
+    nome: STATUS_LABELS[status],
+    valor: total,
+  }));
+
+  const contagemPorCategoria = new Map<string, number>();
+  for (const c of listaChamados) {
+    const chave = c.categoria ?? "Sem categoria";
+    contagemPorCategoria.set(chave, (contagemPorCategoria.get(chave) ?? 0) + 1);
+  }
+  const distribuicaoCategoria = Array.from(contagemPorCategoria.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6)
+    .map(([nome, total]) => ({ nome, valor: total }));
 
   const idsJuniores = new Set((juniores ?? []).map((j) => j.id));
 
@@ -110,14 +133,38 @@ export default async function DesempenhoPage() {
   ).length;
 
   return (
-    <div className="mx-auto max-w-5xl space-y-8 p-8">
+    <div className="mx-auto max-w-6xl space-y-8 p-8">
       <h1 className="text-2xl font-semibold">Desempenho</h1>
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <CardMetrica titulo="Chamados abertos" valor={chamadosAbertos} />
-        <CardMetrica titulo="Resolvidos no mês" valor={resolvidosNoMes} />
-        <CardMetrica titulo="Tempo médio de resolução" valor={`${tempoMedioHoras.toFixed(1)}h`} />
-        <CardMetrica titulo="Escalonamentos (Bruno) no mês" valor={cargaBrunoMes} />
+        <CardMetrica titulo="Chamados abertos" valor={chamadosAbertos} icon={Inbox} cor="azul" />
+        <CardMetrica titulo="Resolvidos no mês" valor={resolvidosNoMes} icon={CheckCircle2} cor="verde" />
+        <CardMetrica titulo="Tempo médio de resolução" valor={`${tempoMedioHoras.toFixed(1)}h`} icon={Clock} cor="ambar" />
+        <CardMetrica
+          titulo="Escalonamentos (Bruno) no mês"
+          valor={cargaBrunoMes}
+          icon={ArrowUpCircle}
+          cor="roxo"
+        />
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Chamados por status</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <DistribuicaoDonut dados={distribuicaoStatus} />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Chamados por categoria</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <DistribuicaoDonut dados={distribuicaoCategoria} />
+          </CardContent>
+        </Card>
       </div>
 
       <Card>
@@ -146,26 +193,13 @@ export default async function DesempenhoPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-3 gap-4">
-            <CardMetrica titulo="Total atendido no mês" valor={totalAtendidoMes} />
-            <CardMetrica titulo="% sozinho" valor={`${percentualSozinho}%`} />
-            <CardMetrica titulo="Tempo médio dele" valor={`${tempoMedioJuniorHoras.toFixed(1)}h`} />
+            <CardMetrica titulo="Total atendido no mês" valor={totalAtendidoMes} icon={CheckCircle2} cor="teal" />
+            <CardMetrica titulo="% sozinho" valor={`${percentualSozinho}%`} icon={CheckCircle2} cor="azul" />
+            <CardMetrica titulo="Tempo médio dele" valor={`${tempoMedioJuniorHoras.toFixed(1)}h`} icon={Clock} cor="ambar" />
           </div>
           <EvolucaoJuniorChart dados={dadosEvolucao} />
         </CardContent>
       </Card>
     </div>
-  );
-}
-
-function CardMetrica({ titulo, valor }: { titulo: string; valor: string | number }) {
-  return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">{titulo}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p className="text-2xl font-semibold">{valor}</p>
-      </CardContent>
-    </Card>
   );
 }
